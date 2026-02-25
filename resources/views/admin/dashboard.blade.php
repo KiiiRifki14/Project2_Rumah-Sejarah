@@ -64,8 +64,8 @@
                 <td>{{ $r->sesi->nama_sesi ?? '-' }}</td>
                 <td>{{ $r->jumlah_anggota }}</td>
                 <td>
-                    @if($r->status === 'valid') <span class="badge-valid">Valid</span>
-                    @elseif($r->status === 'telah_berkunjung') <span class="badge-used">Telah Berkunjung</span>
+                    @if($r->status === \App\Enums\ReservasiStatus::VALID) <span class="badge-valid">Valid</span>
+                    @elseif($r->status === \App\Enums\ReservasiStatus::TELAH_BERKUNJUNG) <span class="badge-used">Telah Berkunjung</span>
                     @else <span class="badge-pending">Pending</span>
                     @endif
                 </td>

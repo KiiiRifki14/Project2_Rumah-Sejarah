@@ -25,7 +25,7 @@ class LaporanController extends Controller
             DB::raw('DATE(tanggal_kunjungan) as tanggal'),
             DB::raw('SUM(jumlah_anggota) as total')
         )
-            ->where('status', 'telah_berkunjung')
+            ->where('status', \App\Enums\ReservasiStatus::TELAH_BERKUNJUNG->value)
             ->whereBetween('tanggal_kunjungan', [$dari, $sampai])
             ->groupBy(DB::raw('DATE(tanggal_kunjungan)'))
             ->orderBy('tanggal')

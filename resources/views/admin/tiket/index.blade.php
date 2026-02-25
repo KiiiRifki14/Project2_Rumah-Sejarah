@@ -17,9 +17,9 @@
             <label class="form-label">Status</label>
             <select name="status" class="form-select form-control-dark">
                 <option value="">Semua</option>
-                <option value="valid" {{ request('status') == 'valid' ? 'selected' : '' }}>Valid</option>
-                <option value="telah_berkunjung" {{ request('status') == 'telah_berkunjung' ? 'selected' : '' }}>Telah Berkunjung</option>
-                <option value="dibatalkan" {{ request('status') == 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
+                <option value="{{ \App\Enums\ReservasiStatus::VALID->value }}" {{ request('status') == \App\Enums\ReservasiStatus::VALID->value ? 'selected' : '' }}>Valid</option>
+                <option value="{{ \App\Enums\ReservasiStatus::TELAH_BERKUNJUNG->value }}" {{ request('status') == \App\Enums\ReservasiStatus::TELAH_BERKUNJUNG->value ? 'selected' : '' }}>Telah Berkunjung</option>
+                <option value="{{ \App\Enums\ReservasiStatus::DIBATALKAN->value }}" {{ request('status') == \App\Enums\ReservasiStatus::DIBATALKAN->value ? 'selected' : '' }}>Dibatalkan</option>
             </select>
         </div>
         <div class="col-md-4">
@@ -56,14 +56,14 @@
                 <td>{{ $r->sesi->nama_sesi ?? '-' }}</td>
                 <td>{{ $r->jumlah_anggota }}</td>
                 <td>
-                    @if($r->status === 'valid') <span class="badge-valid">Valid</span>
-                    @elseif($r->status === 'telah_berkunjung') <span class="badge-used">Telah Berkunjung</span>
-                    @elseif($r->status === 'dibatalkan') <span class="badge bg-danger" style="font-size:0.75rem;">Dibatalkan</span>
+                    @if($r->status === \App\Enums\ReservasiStatus::VALID) <span class="badge-valid">Valid</span>
+                    @elseif($r->status === \App\Enums\ReservasiStatus::TELAH_BERKUNJUNG) <span class="badge-used">Telah Berkunjung</span>
+                    @elseif($r->status === \App\Enums\ReservasiStatus::DIBATALKAN) <span class="badge bg-danger" style="font-size:0.75rem;">Dibatalkan</span>
                     @else <span class="badge-pending">Pending</span>
                     @endif
                 </td>
                 <td>
-                    @if($r->status === 'valid')
+                    @if($r->status === \App\Enums\ReservasiStatus::VALID)
                     <form action="{{ route('admin.tiket.cancel', $r->id) }}" method="POST" style="display:inline;"
                         onsubmit="return confirm('Yakin batalkan reservasi {{ $r->kode_tiket }}?')">
                         @csrf
@@ -71,7 +71,7 @@
                             <i class="fas fa-times me-1"></i>Batalkan
                         </button>
                     </form>
-                    @elseif($r->status === 'dibatalkan')
+                    @elseif($r->status === \App\Enums\ReservasiStatus::DIBATALKAN)
                     <span style="color:var(--text-secondary);font-size:0.8rem;">—</span>
                     @endif
                 </td>

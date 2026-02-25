@@ -43,7 +43,7 @@ class DashboardController extends Controller
         $data = [
             'totalTiketHariIni' => Reservasi::whereDate('tanggal_kunjungan', today())->count(),
             'totalPengunjungHariIni' => Reservasi::whereDate('tanggal_kunjungan', today())
-                ->where('status', 'telah_berkunjung')->sum('jumlah_anggota'),
+                ->where('status', \App\Enums\ReservasiStatus::TELAH_BERKUNJUNG->value)->sum('jumlah_anggota'),
             'totalZona' => Zona::count(),
             'totalBenda' => BendaSejarah::count(),
             'totalReservasi' => Reservasi::count(),

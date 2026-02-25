@@ -27,6 +27,7 @@ class Reservasi extends Model
         'tanggal_kunjungan' => 'date',
         'nik' => 'encrypted',
         'whatsapp' => 'encrypted',
+        'status' => \App\Enums\ReservasiStatus::class,
     ];
 
     public function sesi(): BelongsTo

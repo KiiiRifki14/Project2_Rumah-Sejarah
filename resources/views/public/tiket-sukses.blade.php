@@ -40,7 +40,7 @@
                 @endif
 
                 <!-- QR Code -->
-                @if($reservasi->status !== 'dibatalkan' && $reservasi->qr_code_path)
+                @if($reservasi->status !== \App\Enums\ReservasiStatus::DIBATALKAN && $reservasi->qr_code_path)
                 <div style="background:#fff;border-radius:16px;padding:1.5rem;display:inline-block;margin-bottom:1.5rem;">
                     <img id="qrImage" src="{{ URL::signedRoute('tiket.qr', ['kode' => $reservasi->kode_tiket]) }}" alt="QR Code Tiket" style="width:250px;height:250px;">
                 </div>

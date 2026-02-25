@@ -38,11 +38,11 @@ class AdminTiketController extends Controller
     {
         $reservasi = Reservasi::findOrFail($id);
 
-        if ($reservasi->status === 'dibatalkan') {
+        if ($reservasi->status === \App\Enums\ReservasiStatus::DIBATALKAN) {
             return back()->with('info', 'Reservasi ini sudah dibatalkan sebelumnya.');
         }
 
-        $reservasi->update(['status' => 'dibatalkan']);
+        $reservasi->update(['status' => \App\Enums\ReservasiStatus::DIBATALKAN->value]);
 
         // Hapus file QR code jika ada
         if ($reservasi->qr_code_path && file_exists(storage_path($reservasi->qr_code_path))) {

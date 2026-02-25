@@ -45,7 +45,7 @@ class ReservasiController extends Controller
             $existing = Reservasi::where('nik', $validated['nik'])
                 ->where('tanggal_kunjungan', $validated['tanggal_kunjungan'])
                 ->where('sesi_id', $validated['sesi_id'])
-                ->whereIn('status', ['valid', 'telah_berkunjung'])
+                ->whereIn('status', [\App\Enums\ReservasiStatus::VALID->value, \App\Enums\ReservasiStatus::TELAH_BERKUNJUNG->value])
                 ->first();
 
             if ($existing) {
@@ -68,7 +68,7 @@ class ReservasiController extends Controller
                 'jumlah_anggota' => $validated['jumlah_anggota'],
                 'tanggal_kunjungan' => $validated['tanggal_kunjungan'],
                 'sesi_id' => $validated['sesi_id'],
-                'status' => 'valid',
+                'status' => \App\Enums\ReservasiStatus::VALID->value,
                 'ip_address' => $request->ip(),
             ]);
 
@@ -112,15 +112,15 @@ class ReservasiController extends Controller
             return back()->with('error', 'NIK tidak sesuai dengan data reservasi.');
         }
 
-        if ($reservasi->status === 'dibatalkan') {
+        if ($reservasi->status === \App\Enums\ReservasiStatus::DIBATALKAN) {
             return back()->with('info', 'Reservasi ini sudah dibatalkan sebelumnya.');
         }
 
-        if ($reservasi->status === 'telah_berkunjung') {
+        if ($reservasi->status === \App\Enums\ReservasiStatus::TELAH_BERKUNJUNG) {
             return back()->with('error', 'Reservasi yang sudah digunakan tidak dapat dibatalkan.');
         }
 
-        $reservasi->update(['status' => 'dibatalkan']);
+        $reservasi->update(['status' => \App\Enums\ReservasiStatus::DIBATALKAN->value]);
 
         // Hapus file QR code
         if ($reservasi->qr_code_path && file_exists(storage_path($reservasi->qr_code_path))) {
