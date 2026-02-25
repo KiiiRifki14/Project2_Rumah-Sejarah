@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\AdminSesiController;
 use App\Http\Controllers\Admin\AdminTiketController;
 use App\Http\Controllers\Admin\QrGeneratorController;
 use App\Http\Controllers\Admin\LaporanController;
+use App\Http\Controllers\AuthPublicController;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,8 +22,20 @@ use App\Http\Controllers\Admin\LaporanController;
 */
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/reservasi', [ReservasiController::class, 'create'])->name('reservasi.create');
-Route::post('/reservasi', [ReservasiController::class, 'store'])->name('reservasi.store')->middleware('throttle:3,60');
+
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthPublicController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthPublicController::class, 'login'])->name('login.submit');
+    Route::get('/register', [AuthPublicController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthPublicController::class, 'register'])->name('register.submit');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/reservasi', [ReservasiController::class, 'create'])->name('reservasi.create');
+    Route::post('/reservasi', [ReservasiController::class, 'store'])->name('reservasi.store')->middleware('throttle:3,60');
+    Route::post('/logout', [AuthPublicController::class, 'logout'])->name('logout');
+});
+
 Route::get('/tiket/{kode}', [ReservasiController::class, 'show'])->name('tiket.show');
 Route::get('/tiket/qr/{kode}', [ReservasiController::class, 'showQr'])->name('tiket.qr')->middleware('signed');
 Route::post('/tiket/{kode}/cancel', [ReservasiController::class, 'cancel'])->name('tiket.cancel');

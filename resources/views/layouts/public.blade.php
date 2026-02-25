@@ -315,11 +315,34 @@
                             <i class="fas fa-home me-1"></i> Beranda
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item me-2">
                         <a class="nav-link {{ request()->is('reservasi') ? 'active' : '' }}" href="/reservasi">
                             <i class="fas fa-ticket-alt me-1"></i> Pesan Tiket
                         </a>
                     </li>
+                    @guest
+                    <li class="nav-item mt-2 mt-lg-0">
+                        <a class="btn btn-outline-gold d-block" href="{{ route('login') }}">
+                            <i class="fas fa-sign-in-alt me-1"></i> Masuk
+                        </a>
+                    </li>
+                    @else
+                    <li class="nav-item dropdown mt-2 mt-lg-0">
+                        <a class="nav-link dropdown-toggle btn btn-outline-gold d-flex align-items-center justify-content-between" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: var(--gold) !important; padding-top: 0.65rem !important; padding-bottom: 0.65rem !important;">
+                            <span><i class="fas fa-user-circle me-1"></i> {{ explode(' ', Auth::user()->name)[0] }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end mt-2" aria-labelledby="navbarDropdown" style="background: var(--dark-surface); border: 1px solid var(--dark-border);">
+                            <li>
+                                <form action="{{ route('logout') }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item text-danger" style="font-weight: 500;">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                    @endguest
                 </ul>
             </div>
         </div>
