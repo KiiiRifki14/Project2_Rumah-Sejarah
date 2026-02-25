@@ -321,7 +321,7 @@
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
             <h4><i class="fas fa-landmark me-2"></i>Admin Panel</h4>
-            <small>{{ session('admin_nama', 'Admin') }}</small>
+            <small>{{ Auth::guard('admin')->user()->nama ?? 'Admin' }}</small>
         </div>
         <ul class="sidebar-nav">
             <li><a href="/admin" class="{{ request()->is('admin') && !request()->is('admin/*') ? 'active' : '' }}"><i class="fas fa-th-large"></i> Dashboard</a></li>

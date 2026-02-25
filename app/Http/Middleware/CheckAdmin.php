@@ -9,7 +9,7 @@ class CheckAdmin
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!session()->has('admin_id') || session('admin_role') !== 'admin') {
+        if (!auth()->guard('admin')->check() || auth()->guard('admin')->user()->role !== 'admin') {
             return redirect('/admin/login')->with('error', 'Silakan login terlebih dahulu.');
         }
 

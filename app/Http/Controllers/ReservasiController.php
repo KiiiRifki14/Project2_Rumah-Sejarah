@@ -27,7 +27,7 @@ class ReservasiController extends Controller
 
         // Rate limiting - max 3 per jam per IP
         $ip = $request->ip();
-        $rateLimit = \DB::table('rate_limits')
+        $rateLimit = \Illuminate\Support\Facades\DB::table('rate_limits')
             ->where('ip_address', $ip)
             ->where('action', 'reservasi')
             ->where('window_start', '>', now()->subHour())
@@ -39,11 +39,11 @@ class ReservasiController extends Controller
 
         // Update rate limit
         if ($rateLimit) {
-            \DB::table('rate_limits')->where('id', $rateLimit->id)->update([
+            \Illuminate\Support\Facades\DB::table('rate_limits')->where('id', $rateLimit->id)->update([
                 'attempts' => $rateLimit->attempts + 1,
             ]);
         } else {
-            \DB::table('rate_limits')->insert([
+            \Illuminate\Support\Facades\DB::table('rate_limits')->insert([
                 'ip_address' => $ip,
                 'action' => 'reservasi',
                 'attempts' => 1,
@@ -75,61 +75,65 @@ class ReservasiController extends Controller
             'sesi_id.required' => 'Sesi kunjungan wajib dipilih.',
         ]);
 
-        // Cek kuota sesi
-        $sesi = SesiKunjungan::findOrFail($validated['sesi_id']);
-        $sisaKuota = $sesi->sisaKuota($validated['tanggal_kunjungan']);
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $ip) {
+            // Cek kuota sesi dengan lock
+            $sesi = SesiKunjungan::lockForUpdate()->findOrFail($validated['sesi_id']);
+            $sisaKuota = $sesi->sisaKuota($validated['tanggal_kunjungan']);
 
-        if ($sisaKuota < $validated['jumlah_anggota']) {
-            return back()->with('error', "Kuota sesi {$sesi->nama_sesi} tidak mencukupi. Sisa kuota: {$sisaKuota} orang.")->withInput();
-        }
+            if ($sisaKuota < $validated['jumlah_anggota']) {
+                return back()->with('error', "Kuota sesi {$sesi->nama_sesi} tidak mencukupi. Sisa kuota: {$sisaKuota} orang.")->withInput();
+            }
 
-        // Cek duplikat: NIK + tanggal + sesi yang sama
-        $existing = Reservasi::where('nik', $validated['nik'])
-            ->where('tanggal_kunjungan', $validated['tanggal_kunjungan'])
-            ->where('sesi_id', $validated['sesi_id'])
-            ->whereIn('status', ['valid', 'telah_berkunjung'])
-            ->first();
+            // Cek duplikat: NIK + tanggal + sesi yang sama
+            $existing = Reservasi::where('nik', $validated['nik'])
+                ->where('tanggal_kunjungan', $validated['tanggal_kunjungan'])
+                ->where('sesi_id', $validated['sesi_id'])
+                ->whereIn('status', ['valid', 'telah_berkunjung'])
+                ->first();
 
-        if ($existing) {
-            return redirect('/tiket/' . $existing->kode_tiket)
-                ->with('info', 'Anda sudah memiliki reservasi untuk tanggal dan sesi ini.');
-        }
+            if ($existing) {
+                return redirect('/tiket/' . $existing->kode_tiket)
+                    ->with('info', 'Anda sudah memiliki reservasi untuk tanggal dan sesi ini.');
+            }
 
-        // Generate kode tiket unik
-        $kodeTiket = strtoupper(Str::random(4)) . '-' . strtoupper(Str::random(4)) . '-' . strtoupper(Str::random(4));
+            // Generate kode tiket unik
+            do {
+                $kodeTiket = strtoupper(Str::random(4)) . '-' . strtoupper(Str::random(4)) . '-' . strtoupper(Str::random(4));
+            } while (Reservasi::where('kode_tiket', $kodeTiket)->exists());
 
-        // Simpan reservasi
-        $reservasi = Reservasi::create([
-            'kode_tiket' => $kodeTiket,
-            'nama' => $validated['nama'],
-            'nik' => $validated['nik'],
-            'whatsapp' => $validated['whatsapp'],
-            'email' => $validated['email'],
-            'jumlah_anggota' => $validated['jumlah_anggota'],
-            'tanggal_kunjungan' => $validated['tanggal_kunjungan'],
-            'sesi_id' => $validated['sesi_id'],
-            'status' => 'valid',
-            'ip_address' => $ip,
-        ]);
+            // Simpan reservasi
+            $reservasi = Reservasi::create([
+                'kode_tiket' => $kodeTiket,
+                'nama' => $validated['nama'],
+                'nik' => $validated['nik'],
+                'whatsapp' => $validated['whatsapp'],
+                'email' => $validated['email'],
+                'jumlah_anggota' => $validated['jumlah_anggota'],
+                'tanggal_kunjungan' => $validated['tanggal_kunjungan'],
+                'sesi_id' => $validated['sesi_id'],
+                'status' => 'valid',
+                'ip_address' => $ip,
+            ]);
 
-        // Generate QR Code
-        $qrDir = public_path('qrcodes/tiket');
-        if (!file_exists($qrDir)) {
-            mkdir($qrDir, 0755, true);
-        }
+            // Generate QR Code di storage private
+            $qrDir = storage_path('app/private/tickets');
+            if (!file_exists($qrDir)) {
+                mkdir($qrDir, 0755, true);
+            }
 
-        $qrContent = json_encode([
-            'kode' => $kodeTiket,
-            'id' => $reservasi->id,
-            'hash' => hash('sha256', $kodeTiket . $reservasi->id . env('APP_KEY')),
-        ]);
+            $qrContent = json_encode([
+                'kode' => $kodeTiket,
+                'id' => $reservasi->id,
+                'hash' => hash('sha256', $kodeTiket . $reservasi->id . env('APP_KEY')),
+            ]);
 
-        $qrPath = 'qrcodes/tiket/' . $kodeTiket . '.svg';
-        QrCode::format('svg')->size(300)->errorCorrection('H')->generate($qrContent, public_path($qrPath));
+            $qrPath = 'app/private/tickets/' . $kodeTiket . '.svg';
+            QrCode::format('svg')->size(300)->errorCorrection('H')->generate($qrContent, storage_path($qrPath));
 
-        $reservasi->update(['qr_code_path' => $qrPath]);
+            $reservasi->update(['qr_code_path' => $qrPath]);
 
-        return redirect('/tiket/' . $kodeTiket);
+            return redirect('/tiket/' . $kodeTiket);
+        });
     }
 
     public function show($kode)
@@ -165,8 +169,8 @@ class ReservasiController extends Controller
         $reservasi->update(['status' => 'dibatalkan']);
 
         // Hapus file QR code
-        if ($reservasi->qr_code_path && file_exists(public_path($reservasi->qr_code_path))) {
-            unlink(public_path($reservasi->qr_code_path));
+        if ($reservasi->qr_code_path && file_exists(storage_path($reservasi->qr_code_path))) {
+            unlink(storage_path($reservasi->qr_code_path));
         }
 
         return redirect('/tiket/' . $kode)->with('success', 'Reservasi berhasil dibatalkan.');
@@ -192,5 +196,23 @@ class ReservasiController extends Controller
         });
 
         return response()->json($sesiList);
+    }
+
+    public function showQr($kode)
+    {
+        $reservasi = Reservasi::where('kode_tiket', $kode)->firstOrFail();
+
+        $path = storage_path($reservasi->qr_code_path);
+
+        if (!file_exists($path)) {
+            abort(404);
+        }
+
+        return response()->file($path, [
+            'Content-Type' => 'image/svg+xml',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0'
+        ]);
     }
 }

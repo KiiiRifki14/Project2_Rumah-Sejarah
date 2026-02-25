@@ -25,6 +25,8 @@ class Reservasi extends Model
 
     protected $casts = [
         'tanggal_kunjungan' => 'date',
+        'nik' => 'encrypted',
+        'whatsapp' => 'encrypted',
     ];
 
     public function sesi(): BelongsTo

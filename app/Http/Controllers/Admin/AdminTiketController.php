@@ -45,8 +45,8 @@ class AdminTiketController extends Controller
         $reservasi->update(['status' => 'dibatalkan']);
 
         // Hapus file QR code jika ada
-        if ($reservasi->qr_code_path && file_exists(public_path($reservasi->qr_code_path))) {
-            unlink(public_path($reservasi->qr_code_path));
+        if ($reservasi->qr_code_path && file_exists(storage_path($reservasi->qr_code_path))) {
+            unlink(storage_path($reservasi->qr_code_path));
         }
 
         return back()->with('success', "Reservasi {$reservasi->kode_tiket} berhasil dibatalkan.");

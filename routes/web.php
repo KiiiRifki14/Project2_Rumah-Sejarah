@@ -24,6 +24,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/reservasi', [ReservasiController::class, 'create'])->name('reservasi.create');
 Route::post('/reservasi', [ReservasiController::class, 'store'])->name('reservasi.store');
 Route::get('/tiket/{kode}', [ReservasiController::class, 'show'])->name('tiket.show');
+Route::get('/tiket/qr/{kode}', [ReservasiController::class, 'showQr'])->name('tiket.qr')->middleware('signed');
 Route::post('/tiket/{kode}/cancel', [ReservasiController::class, 'cancel'])->name('tiket.cancel');
 Route::post('/api/slot-tersedia', [ReservasiController::class, 'cekSlot'])->name('api.slot');
 Route::get('/zona/{id}', [ZonaPublicController::class, 'show'])->name('zona.show');

@@ -15,7 +15,7 @@ class DashboardController extends Controller
 {
     public function loginForm()
     {
-        if (session()->has('admin_id') && session('admin_role') === 'admin') {
+        if (\Illuminate\Support\Facades\Auth::guard('admin')->check() && \Illuminate\Support\Facades\Auth::guard('admin')->user()->role === 'admin') {
             return redirect('/admin');
         }
         return view('admin.login');
@@ -23,19 +23,15 @@ class DashboardController extends Controller
 
     public function login(Request $request)
     {
-        $request->validate([
+        $credentials = $request->validate([
             'username' => 'required',
             'password' => 'required',
         ]);
 
-        $admin = Admin::where('username', $request->username)->where('role', 'admin')->first();
+        $credentials['role'] = 'admin';
 
-        if ($admin && Hash::check($request->password, $admin->password)) {
-            session([
-                'admin_id' => $admin->id,
-                'admin_nama' => $admin->nama,
-                'admin_role' => $admin->role,
-            ]);
+        if (\Illuminate\Support\Facades\Auth::guard('admin')->attempt($credentials)) {
+            $request->session()->regenerate();
             return redirect('/admin');
         }
 
@@ -57,9 +53,11 @@ class DashboardController extends Controller
         return view('admin.dashboard', $data);
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
-        session()->flush();
+        \Illuminate\Support\Facades\Auth::guard('admin')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
         return redirect('/admin/login');
     }
 }
