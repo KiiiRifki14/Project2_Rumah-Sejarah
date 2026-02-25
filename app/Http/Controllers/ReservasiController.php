@@ -41,12 +41,14 @@ class ReservasiController extends Controller
                 return back()->with('error', "Kuota sesi {$sesi->nama_sesi} tidak mencukupi. Sisa kuota: {$sisaKuota} orang.")->withInput();
             }
 
-            // Cek duplikat: NIK + tanggal + sesi yang sama
-            $existing = Reservasi::where('nik', $validated['nik'])
-                ->where('tanggal_kunjungan', $validated['tanggal_kunjungan'])
+            // Cek duplikat: Fetch data sesi & tanggal saja, lalu cocokkan NIK terenkripsinya pakai Collection di sisi backend
+            $existing = Reservasi::where('tanggal_kunjungan', $validated['tanggal_kunjungan'])
                 ->where('sesi_id', $validated['sesi_id'])
                 ->whereIn('status', [\App\Enums\ReservasiStatus::VALID->value, \App\Enums\ReservasiStatus::TELAH_BERKUNJUNG->value])
-                ->first();
+                ->get()
+                ->first(function ($r) use ($validated) {
+                    return $r->nik === $validated['nik'];
+                });
 
             if ($existing) {
                 return redirect('/tiket/' . $existing->kode_tiket)
@@ -126,8 +128,8 @@ class ReservasiController extends Controller
         $reservasi->update(['status' => \App\Enums\ReservasiStatus::DIBATALKAN->value]);
 
         // Hapus file QR code
-        if ($reservasi->qr_code_path && file_exists(storage_path($reservasi->qr_code_path))) {
-            unlink(storage_path($reservasi->qr_code_path));
+        if ($reservasi->qr_code_path && Storage::exists($reservasi->qr_code_path)) {
+            Storage::delete($reservasi->qr_code_path);
         }
 
         return redirect('/tiket/' . $kode)->with('success', 'Reservasi berhasil dibatalkan.');
@@ -159,7 +161,7 @@ class ReservasiController extends Controller
     {
         $reservasi = Reservasi::where('kode_tiket', $kode)->firstOrFail();
 
-        $path = storage_path($reservasi->qr_code_path);
+        $path = Storage::path($reservasi->qr_code_path);
 
         if (!file_exists($path)) {
             abort(404);

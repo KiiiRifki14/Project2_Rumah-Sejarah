@@ -24,8 +24,7 @@ class AdminTiketController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('nama', 'like', "%{$search}%")
-                    ->orWhere('kode_tiket', 'like', "%{$search}%")
-                    ->orWhere('nik', 'like', "%{$search}%");
+                    ->orWhere('kode_tiket', 'like', "%{$search}%");
             });
         }
 
@@ -45,8 +44,8 @@ class AdminTiketController extends Controller
         $reservasi->update(['status' => \App\Enums\ReservasiStatus::DIBATALKAN->value]);
 
         // Hapus file QR code jika ada
-        if ($reservasi->qr_code_path && file_exists(storage_path($reservasi->qr_code_path))) {
-            unlink(storage_path($reservasi->qr_code_path));
+        if ($reservasi->qr_code_path && \Illuminate\Support\Facades\Storage::exists($reservasi->qr_code_path)) {
+            \Illuminate\Support\Facades\Storage::delete($reservasi->qr_code_path);
         }
 
         return back()->with('success', "Reservasi {$reservasi->kode_tiket} berhasil dibatalkan.");

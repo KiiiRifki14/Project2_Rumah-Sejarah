@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::table('reservasi', function (Blueprint $table) {
             $table->index('kode_tiket');
-            $table->index('nik');
             $table->index(['tanggal_kunjungan', 'sesi_id']);
         });
     }
@@ -25,7 +24,6 @@ return new class extends Migration
     {
         Schema::table('reservasi', function (Blueprint $table) {
             $table->dropIndex(['kode_tiket']);
-            $table->dropIndex(['nik']);
             $table->dropIndex(['tanggal_kunjungan', 'sesi_id']);
         });
     }

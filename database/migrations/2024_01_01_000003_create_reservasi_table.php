@@ -12,8 +12,8 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('kode_tiket', 50)->unique();
             $table->string('nama', 100);
-            $table->string('nik', 16);
-            $table->string('whatsapp', 20);
+            $table->text('nik');
+            $table->text('whatsapp');
             $table->string('email', 100);
             $table->integer('jumlah_anggota')->default(1);
             $table->date('tanggal_kunjungan');

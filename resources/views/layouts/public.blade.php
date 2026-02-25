@@ -75,6 +75,7 @@
         .navbar-brand i {
             background: linear-gradient(135deg, var(--gold), var(--gold-light));
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
