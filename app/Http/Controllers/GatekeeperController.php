@@ -64,7 +64,7 @@ class GatekeeperController extends Controller
             ]);
         }
 
-        if ($reservasi->status === 'telah_berkunjung') {
+        if ($reservasi->status === \App\Enums\ReservasiStatus::TELAH_BERKUNJUNG) {
             return response()->json([
                 'success' => false,
                 'message' => 'Tiket ini sudah digunakan sebelumnya.',
@@ -88,7 +88,7 @@ class GatekeeperController extends Controller
         }
 
         // Update status
-        $reservasi->update(['status' => 'telah_berkunjung']);
+        $reservasi->update(['status' => \App\Enums\ReservasiStatus::TELAH_BERKUNJUNG->value]);
 
         // Catat log
         LogKunjungan::create([
@@ -106,7 +106,7 @@ class GatekeeperController extends Controller
                 'jumlah_anggota' => $reservasi->jumlah_anggota,
                 'tanggal_kunjungan' => $reservasi->tanggal_kunjungan->format('d M Y'),
                 'sesi' => $reservasi->sesi->nama_sesi ?? '-',
-                'status' => 'telah_berkunjung',
+                'status' => \App\Enums\ReservasiStatus::TELAH_BERKUNJUNG->value,
             ],
         ]);
     }
