@@ -22,7 +22,7 @@ use App\Http\Controllers\Admin\LaporanController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/reservasi', [ReservasiController::class, 'create'])->name('reservasi.create');
-Route::post('/reservasi', [ReservasiController::class, 'store'])->name('reservasi.store');
+Route::post('/reservasi', [ReservasiController::class, 'store'])->name('reservasi.store')->middleware('throttle:3,60');
 Route::get('/tiket/{kode}', [ReservasiController::class, 'show'])->name('tiket.show');
 Route::get('/tiket/qr/{kode}', [ReservasiController::class, 'showQr'])->name('tiket.qr')->middleware('signed');
 Route::post('/tiket/{kode}/cancel', [ReservasiController::class, 'cancel'])->name('tiket.cancel');
