@@ -78,7 +78,7 @@ class GatekeeperController extends Controller
 
         // Validasi hash jika ada
         if (isset($decoded['hash'])) {
-            $expectedHash = hash('sha256', $decoded['kode'] . $decoded['id'] . env('APP_KEY'));
+            $expectedHash = hash('sha256', $decoded['kode'] . $decoded['id'] . config('app.key'));
             if ($expectedHash !== $decoded['hash']) {
                 return response()->json([
                     'success' => false,

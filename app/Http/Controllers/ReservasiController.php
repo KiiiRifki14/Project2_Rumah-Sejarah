@@ -124,7 +124,7 @@ class ReservasiController extends Controller
             $qrContent = json_encode([
                 'kode' => $kodeTiket,
                 'id' => $reservasi->id,
-                'hash' => hash('sha256', $kodeTiket . $reservasi->id . env('APP_KEY')),
+                'hash' => hash('sha256', $kodeTiket . $reservasi->id . config('app.key')),
             ]);
 
             $qrPath = 'app/private/tickets/' . $kodeTiket . '.svg';
