@@ -86,6 +86,9 @@ class ReservasiController extends Controller
 
             $reservasi->update(['qr_code_path' => $qrPath]);
 
+            // Dispatch Email Queue Job
+            \App\Jobs\SendTicketEmail::dispatch($reservasi);
+
             return redirect('/tiket/' . $kodeTiket);
         });
     }

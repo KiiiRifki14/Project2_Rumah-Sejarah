@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('reservasi', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('kode_tiket', 50)->unique();
             $table->string('nama', 100);
             $table->string('nik', 16);
