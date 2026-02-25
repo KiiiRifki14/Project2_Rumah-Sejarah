@@ -24,6 +24,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/reservasi', [ReservasiController::class, 'create'])->name('reservasi.create');
 Route::post('/reservasi', [ReservasiController::class, 'store'])->name('reservasi.store');
 Route::get('/tiket/{kode}', [ReservasiController::class, 'show'])->name('tiket.show');
+Route::post('/tiket/{kode}/cancel', [ReservasiController::class, 'cancel'])->name('tiket.cancel');
 Route::post('/api/slot-tersedia', [ReservasiController::class, 'cekSlot'])->name('api.slot');
 Route::get('/zona/{id}', [ZonaPublicController::class, 'show'])->name('zona.show');
 Route::get('/benda/{id}', [BendaPublicController::class, 'show'])->name('benda.show');
@@ -80,6 +81,7 @@ Route::prefix('admin')->group(function () {
 
         // Tiket
         Route::get('/tiket', [AdminTiketController::class, 'index'])->name('admin.tiket.index');
+        Route::post('/tiket/{id}/cancel', [AdminTiketController::class, 'cancel'])->name('admin.tiket.cancel');
 
         // QR Generator
         Route::get('/qr-generator', [QrGeneratorController::class, 'index'])->name('admin.qr.index');

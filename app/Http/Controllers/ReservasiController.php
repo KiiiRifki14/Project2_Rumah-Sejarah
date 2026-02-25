@@ -83,6 +83,18 @@ class ReservasiController extends Controller
             return back()->with('error', "Kuota sesi {$sesi->nama_sesi} tidak mencukupi. Sisa kuota: {$sisaKuota} orang.")->withInput();
         }
 
+        // Cek duplikat: NIK + tanggal + sesi yang sama
+        $existing = Reservasi::where('nik', $validated['nik'])
+            ->where('tanggal_kunjungan', $validated['tanggal_kunjungan'])
+            ->where('sesi_id', $validated['sesi_id'])
+            ->whereIn('status', ['valid', 'telah_berkunjung'])
+            ->first();
+
+        if ($existing) {
+            return redirect('/tiket/' . $existing->kode_tiket)
+                ->with('info', 'Anda sudah memiliki reservasi untuk tanggal dan sesi ini.');
+        }
+
         // Generate kode tiket unik
         $kodeTiket = strtoupper(Str::random(4)) . '-' . strtoupper(Str::random(4)) . '-' . strtoupper(Str::random(4));
 
@@ -124,6 +136,40 @@ class ReservasiController extends Controller
     {
         $reservasi = Reservasi::where('kode_tiket', $kode)->with('sesi')->firstOrFail();
         return view('public.tiket-sukses', compact('reservasi'));
+    }
+
+    public function cancel(Request $request, $kode)
+    {
+        $request->validate([
+            'nik' => 'required|string|size:16',
+        ], [
+            'nik.required' => 'NIK wajib diisi untuk konfirmasi pembatalan.',
+            'nik.size' => 'NIK harus 16 digit.',
+        ]);
+
+        $reservasi = Reservasi::where('kode_tiket', $kode)->firstOrFail();
+
+        // Verifikasi NIK pemilik tiket
+        if ($reservasi->nik !== $request->nik) {
+            return back()->with('error', 'NIK tidak sesuai dengan data reservasi.');
+        }
+
+        if ($reservasi->status === 'dibatalkan') {
+            return back()->with('info', 'Reservasi ini sudah dibatalkan sebelumnya.');
+        }
+
+        if ($reservasi->status === 'telah_berkunjung') {
+            return back()->with('error', 'Reservasi yang sudah digunakan tidak dapat dibatalkan.');
+        }
+
+        $reservasi->update(['status' => 'dibatalkan']);
+
+        // Hapus file QR code
+        if ($reservasi->qr_code_path && file_exists(public_path($reservasi->qr_code_path))) {
+            unlink(public_path($reservasi->qr_code_path));
+        }
+
+        return redirect('/tiket/' . $kode)->with('success', 'Reservasi berhasil dibatalkan.');
     }
 
     public function cekSlot(Request $request)

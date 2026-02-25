@@ -19,6 +19,7 @@
                 <option value="">Semua</option>
                 <option value="valid" {{ request('status') == 'valid' ? 'selected' : '' }}>Valid</option>
                 <option value="telah_berkunjung" {{ request('status') == 'telah_berkunjung' ? 'selected' : '' }}>Telah Berkunjung</option>
+                <option value="dibatalkan" {{ request('status') == 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
             </select>
         </div>
         <div class="col-md-4">
@@ -42,6 +43,7 @@
                 <th>Sesi</th>
                 <th>Jml</th>
                 <th>Status</th>
+                <th>Aksi</th>
             </tr>
         </thead>
         <tbody>
@@ -56,13 +58,27 @@
                 <td>
                     @if($r->status === 'valid') <span class="badge-valid">Valid</span>
                     @elseif($r->status === 'telah_berkunjung') <span class="badge-used">Telah Berkunjung</span>
+                    @elseif($r->status === 'dibatalkan') <span class="badge bg-danger" style="font-size:0.75rem;">Dibatalkan</span>
                     @else <span class="badge-pending">Pending</span>
+                    @endif
+                </td>
+                <td>
+                    @if($r->status === 'valid')
+                    <form action="{{ route('admin.tiket.cancel', $r->id) }}" method="POST" style="display:inline;"
+                        onsubmit="return confirm('Yakin batalkan reservasi {{ $r->kode_tiket }}?')">
+                        @csrf
+                        <button type="submit" class="btn btn-sm" style="background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3);font-size:0.75rem;padding:0.25rem 0.6rem;">
+                            <i class="fas fa-times me-1"></i>Batalkan
+                        </button>
+                    </form>
+                    @elseif($r->status === 'dibatalkan')
+                    <span style="color:var(--text-secondary);font-size:0.8rem;">—</span>
                     @endif
                 </td>
             </tr>
             @empty
             <tr>
-                <td colspan="7" class="text-center" style="color:var(--text-secondary);padding:2rem;">Belum ada data.</td>
+                <td colspan="8" class="text-center" style="color:var(--text-secondary);padding:2rem;">Belum ada data.</td>
             </tr>
             @endforelse
         </tbody>

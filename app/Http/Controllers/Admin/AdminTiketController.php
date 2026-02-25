@@ -29,8 +29,26 @@ class AdminTiketController extends Controller
             });
         }
 
-        $tiketList = $query->paginate(20);
+        $reservasiList = $query->paginate(20);
 
-        return view('admin.tiket.index', compact('tiketList'));
+        return view('admin.tiket.index', compact('reservasiList'));
+    }
+
+    public function cancel($id)
+    {
+        $reservasi = Reservasi::findOrFail($id);
+
+        if ($reservasi->status === 'dibatalkan') {
+            return back()->with('info', 'Reservasi ini sudah dibatalkan sebelumnya.');
+        }
+
+        $reservasi->update(['status' => 'dibatalkan']);
+
+        // Hapus file QR code jika ada
+        if ($reservasi->qr_code_path && file_exists(public_path($reservasi->qr_code_path))) {
+            unlink(public_path($reservasi->qr_code_path));
+        }
+
+        return back()->with('success', "Reservasi {$reservasi->kode_tiket} berhasil dibatalkan.");
     }
 }

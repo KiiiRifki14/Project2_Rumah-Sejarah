@@ -131,5 +131,12 @@
             slotInfo.style.display = 'none';
         }
     });
+
+    // Anti double-submit
+    document.getElementById('formReservasi').addEventListener('submit', function() {
+        const btn = document.getElementById('btnSubmit');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Memproses...';
+    });
 </script>
 @endsection
